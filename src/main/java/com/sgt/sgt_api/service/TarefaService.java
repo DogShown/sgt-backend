@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
-
 @Service
 public class TarefaService {
 
@@ -24,9 +23,8 @@ public class TarefaService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public TarefaResponseDTO criar(TarefaRequestDTO dto) {
-        Usuario usuario = usuarioRepository.findById(dto.usuarioId())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+    public TarefaResponseDTO criar(TarefaRequestDTO dto, String emailUsuario) {
+        Usuario usuario = buscarUsuarioAutenticado(emailUsuario);
 
         Tarefa tarefa = new Tarefa();
         tarefa.setTitulo(dto.titulo());
@@ -41,10 +39,10 @@ public class TarefaService {
         return new TarefaResponseDTO(tarefa);
     }
 
-    public List<TarefaResponseDTO> listarPorUsuario(Long usuarioId) {
-        List<Tarefa> tarefas = tarefaRepository.findByUsuarioId(usuarioId);
+    public List<TarefaResponseDTO> listarPorUsuario(String emailUsuario) {
+        Usuario usuario = buscarUsuarioAutenticado(emailUsuario);
+        List<Tarefa> tarefas = tarefaRepository.findByUsuarioId(usuario.getId());
 
-        // Atualiza tarefas vencidas automaticamente para ATRASADA
         tarefas.forEach(t -> {
             if (t.getStatus() == StatusTarefa.PENDENTE && LocalDate.now().isAfter(t.getDataEntrega())) {
                 t.setStatus(StatusTarefa.ATRASADA);
@@ -55,9 +53,8 @@ public class TarefaService {
         return tarefas.stream().map(TarefaResponseDTO::new).toList();
     }
 
-    public TarefaResponseDTO concluirTarefa(Long id) {
-        Tarefa tarefa = tarefaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada."));
+    public TarefaResponseDTO concluirTarefa(Long id, String emailUsuario) {
+        Tarefa tarefa = buscarTarefaDoUsuario(id, emailUsuario);
 
         if (LocalDate.now().isAfter(tarefa.getDataEntrega())) {
             tarefa.setStatus(StatusTarefa.CONCLUIDA_COM_ATRASO);
@@ -69,10 +66,24 @@ public class TarefaService {
         return new TarefaResponseDTO(tarefa);
     }
 
-    public void deletar(Long id) {
-        if (!tarefaRepository.existsById(id)) {
-            throw new RuntimeException("Tarefa não encontrada.");
+    public void deletar(Long id, String emailUsuario) {
+        Tarefa tarefa = buscarTarefaDoUsuario(id, emailUsuario);
+        tarefaRepository.delete(tarefa);
+    }
+
+    private Usuario buscarUsuarioAutenticado(String email) {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário autenticado não encontrado."));
+    }
+
+    private Tarefa buscarTarefaDoUsuario(Long id, String emailUsuario) {
+        Tarefa tarefa = tarefaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada."));
+
+        if (!tarefa.getUsuario().getEmail().equalsIgnoreCase(emailUsuario)) {
+            throw new RuntimeException("Você não tem permissão para acessar esta tarefa.");
         }
-        tarefaRepository.deleteById(id);
+
+        return tarefa;
     }
 }
