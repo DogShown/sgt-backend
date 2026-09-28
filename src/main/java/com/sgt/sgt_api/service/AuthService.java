@@ -13,10 +13,16 @@ public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(
+            UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
+    ) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
@@ -27,9 +33,10 @@ public class AuthService {
             throw new RuntimeException("E-mail ou senha inválidos.");
         }
 
-        // Retorna o DTO com dados do usuário autenticado
+        String token = jwtService.gerarToken(usuario.getId(), usuario.getEmail());
+
         return new LoginResponseDTO(
-                "token-jwt-exemplo",
+                token,
                 usuario.getId(),
                 usuario.getNome(),
                 usuario.getEmail(),
