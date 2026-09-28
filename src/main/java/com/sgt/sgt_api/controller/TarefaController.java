@@ -5,6 +5,7 @@ import com.sgt.sgt_api.dto.response.TarefaResponseDTO;
 import com.sgt.sgt_api.service.TarefaService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,23 +21,32 @@ public class TarefaController {
     }
 
     @PostMapping
-    public ResponseEntity<TarefaResponseDTO> criar(@Valid @RequestBody TarefaRequestDTO dto) {
-        return ResponseEntity.ok(tarefaService.criar(dto));
+    public ResponseEntity<TarefaResponseDTO> criar(
+            @Valid @RequestBody TarefaRequestDTO dto,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(tarefaService.criar(dto, authentication.getName()));
     }
 
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<TarefaResponseDTO>> listarPorUsuario(@PathVariable Long usuarioId) {
-        return ResponseEntity.ok(tarefaService.listarPorUsuario(usuarioId));
+    @GetMapping
+    public ResponseEntity<List<TarefaResponseDTO>> listar(Authentication authentication) {
+        return ResponseEntity.ok(tarefaService.listarPorUsuario(authentication.getName()));
     }
 
     @PutMapping("/{id}/concluir")
-    public ResponseEntity<TarefaResponseDTO> concluir(@PathVariable Long id) {
-        return ResponseEntity.ok(tarefaService.concluirTarefa(id));
+    public ResponseEntity<TarefaResponseDTO> concluir(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(tarefaService.concluirTarefa(id, authentication.getName()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        tarefaService.deletar(id);
+    public ResponseEntity<Void> deletar(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        tarefaService.deletar(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 }
