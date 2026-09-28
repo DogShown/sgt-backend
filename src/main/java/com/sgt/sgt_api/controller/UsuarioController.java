@@ -1,9 +1,7 @@
 package com.sgt.sgt_api.controller;
 
-import com.sgt.sgt_api.dto.request.UsuarioRequestDTO;
 import com.sgt.sgt_api.dto.response.UsuarioResponseDTO;
 import com.sgt.sgt_api.service.UsuarioService;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,11 +15,6 @@ public class UsuarioController {
 
     public UsuarioController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
-    }
-
-    @PostMapping("/cadastrar")
-    public ResponseEntity<UsuarioResponseDTO> cadastrar(@Valid @RequestBody UsuarioRequestDTO dto) {
-        return ResponseEntity.ok(usuarioService.cadastrar(dto));
     }
 
     @GetMapping("/{id}")
