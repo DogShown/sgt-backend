@@ -19,8 +19,5 @@ public record TarefaRequestDTO(
 
         @NotNull(message = "A data de entrega é obrigatória.")
         @FutureOrPresent(message = "A data de entrega deve ser atual ou futura.")
-        LocalDate dataEntrega,
-
-        @NotNull(message = "O ID do usuário é obrigatório.")
-        Long usuarioId
+        LocalDate dataEntrega
 ) {}
