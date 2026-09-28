@@ -8,11 +8,13 @@ import com.sgt.sgt_api.enums.StatusTarefa;
 import com.sgt.sgt_api.repository.TarefaRepository;
 import com.sgt.sgt_api.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Transactional
 public class TarefaService {
 
     private final TarefaRepository tarefaRepository;
