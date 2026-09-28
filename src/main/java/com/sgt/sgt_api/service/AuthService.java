@@ -3,7 +3,9 @@ package com.sgt.sgt_api.service;
 import com.sgt.sgt_api.dto.request.LoginRequestDTO;
 import com.sgt.sgt_api.dto.request.RegistroRequestDTO;
 import com.sgt.sgt_api.dto.response.LoginResponseDTO;
+import com.sgt.sgt_api.dto.response.UsuarioResponseDTO;
 import com.sgt.sgt_api.entity.Usuario;
+import com.sgt.sgt_api.enums.StatusUsuario;
 import com.sgt.sgt_api.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,10 @@ public class AuthService {
         Usuario usuario = usuarioRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("E-mail ou senha inválidos."));
 
+        if (usuario.getStatus() != StatusUsuario.ATIVO) {
+            throw new RuntimeException("Usuário não está ativo.");
+        }
+
         if (!passwordEncoder.matches(dto.getSenha(), usuario.getSenha())) {
             throw new RuntimeException("E-mail ou senha inválidos.");
         }
@@ -42,6 +48,13 @@ public class AuthService {
                 usuario.getEmail(),
                 usuario.getTurma()
         );
+    }
+
+    public UsuarioResponseDTO usuarioAtual(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário autenticado não encontrado."));
+
+        return new UsuarioResponseDTO(usuario);
     }
 
     public void cadastrar(RegistroRequestDTO dto) {
