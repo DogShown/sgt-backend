@@ -31,6 +31,7 @@ Arquivo: src/main/java/com/sgt/sgt_api/service/JwtService.java
 Arquivo: src/main/resources/application.properties
 - [OK] Há fallback para desenvolvimento local.
 - [REVISAR] Em produção, o segredo deve vir de variável de ambiente/secret manager, não de valor versionado.
+- [OK] A aplicação possui fallback local para desenvolvimento.
 
 ## 4. JWT — login e geração
 - [OK] Busca usuário por e-mail.
@@ -98,6 +99,7 @@ Há configuração em SecurityConfig e também em WebConfig.
 - [OK] RuntimeException -> 400.
 - [OK] Falha de validação -> 422.
 - [REVISAR] Depois, diferenciar melhor 400, 401, 403, 404 e 409 para melhorar o contrato com o frontend.
+- [REVISAR] Podemos adicionar um AuthenticationEntryPoint JSON específico em uma etapa posterior.
 
 ## 11. Dependências
 - [REVISAR] Existe driver MySQL além do SQL Server.
@@ -106,7 +108,15 @@ Esses itens não são o bloqueador confirmado pelo último log.
 
 ## 12. Testes automatizados
 - [OK] Existe SgtApiApplicationTests com contextLoads().
-- [REVISAR] Criar testes específicos para cadastro, login, JWT, /auth/me, endpoints protegidos e isolamento de tarefas.
+- [OK] Foi adicionado teste unitário do `JwtService` para geração/validação, segredo curto e token alterado.
+- [REVISAR] Criar testes de integração para cadastro, login, `/auth/me`, endpoints protegidos e isolamento de tarefas.
+
+## Alterações já aplicadas
+- Protegido `/api/auth/me`.
+- Centralizado CORS no `SecurityConfig`.
+- Removido `WebConfig` de CORS duplicado.
+- Definido explicitamente `org.hibernate.dialect.SQLServerDialect`.
+- Criado `JwtServiceTest`.
 
 ## Ordem da próxima sessão
 1. Resolver SQL Server e login sa.
