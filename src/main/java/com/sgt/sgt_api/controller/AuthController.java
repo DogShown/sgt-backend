@@ -2,6 +2,7 @@ package com.sgt.sgt_api.controller;
 
 import com.sgt.sgt_api.dto.request.LoginRequestDTO;
 import com.sgt.sgt_api.dto.request.RegistroRequestDTO;
+import com.sgt.sgt_api.dto.request.AtualizarUsuarioRequestDTO;
 import com.sgt.sgt_api.dto.response.LoginResponseDTO;
 import com.sgt.sgt_api.dto.response.UsuarioResponseDTO;
 import com.sgt.sgt_api.service.AuthService;
@@ -30,6 +31,11 @@ public class AuthController {
     public ResponseEntity<Void> cadastrar(@Valid @RequestBody RegistroRequestDTO dto) {
         authService.cadastrar(dto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UsuarioResponseDTO> atualizarUsuario(Authentication authentication, @Valid @RequestBody AtualizarUsuarioRequestDTO dto) {
+        return ResponseEntity.ok(authService.atualizarUsuario(authentication.getName(), dto));
     }
 
     @GetMapping("/me")
