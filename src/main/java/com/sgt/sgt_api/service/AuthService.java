@@ -2,6 +2,7 @@ package com.sgt.sgt_api.service;
 
 import com.sgt.sgt_api.dto.request.LoginRequestDTO;
 import com.sgt.sgt_api.dto.request.RegistroRequestDTO;
+import com.sgt.sgt_api.dto.request.AtualizarUsuarioRequestDTO;
 import com.sgt.sgt_api.dto.response.LoginResponseDTO;
 import com.sgt.sgt_api.dto.response.UsuarioResponseDTO;
 import com.sgt.sgt_api.entity.Usuario;
@@ -55,6 +56,15 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Usuário autenticado não encontrado."));
 
         return new UsuarioResponseDTO(usuario);
+    }
+
+    public UsuarioResponseDTO atualizarUsuario(String email, AtualizarUsuarioRequestDTO dto) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário autenticado não encontrado."));
+
+        usuario.setNome(dto.getNome());
+        usuario.setTurma(dto.getTurma());
+        return new UsuarioResponseDTO(usuarioRepository.save(usuario));
     }
 
     public void cadastrar(RegistroRequestDTO dto) {
