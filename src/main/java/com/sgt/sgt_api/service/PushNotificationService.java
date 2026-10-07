@@ -14,9 +14,6 @@ import org.apache.http.HttpResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.util.List;
 
 @Service
@@ -63,7 +60,7 @@ public class PushNotificationService {
     }
 
     public void enviarParaUsuario(String email, String titulo, String corpo, String url) {
-        if (!settings.configured() || pushService == null) return;
+        if (!settings.configured()) return;
 
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuário autenticado não encontrado."));
