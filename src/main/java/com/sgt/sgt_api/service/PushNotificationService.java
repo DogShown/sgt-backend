@@ -25,20 +25,17 @@ public class PushNotificationService {
 
     private final PushSubscriptionRepository subscriptionRepository;
     private final UsuarioRepository usuarioRepository;
-    private final PushService pushService;
     private final PushSettings settings;
     private final ObjectMapper objectMapper;
 
     public PushNotificationService(
             PushSubscriptionRepository subscriptionRepository,
             UsuarioRepository usuarioRepository,
-            PushService pushService,
             PushSettings settings,
             ObjectMapper objectMapper
     ) {
         this.subscriptionRepository = subscriptionRepository;
         this.usuarioRepository = usuarioRepository;
-        this.pushService = pushService;
         this.settings = settings;
         this.objectMapper = objectMapper;
     }
@@ -80,9 +77,16 @@ public class PushNotificationService {
             throw new RuntimeException("Não foi possível montar a notificação push.", exception);
         }
 
-        for (PushSubscription subscription : subscriptions) {
-            try {
-                Notification notification = new Notification(
+        try {
+            PushService pushService = new PushService(
+                    settings.publicKey(),
+                    settings.privateKey(),
+                    settings.subject()
+            );
+
+            for (PushSubscription subscription : subscriptions) {
+                try {
+                    Notification notification = new Notification(
                         subscription.getEndpoint(),
                         subscription.getP256dh(),
                         subscription.getAuth(),
@@ -92,12 +96,15 @@ public class PushNotificationService {
                 HttpResponse response = pushService.send(notification);
                 int status = response.getStatusLine().getStatusCode();
 
-                if (status == 404 || status == 410) {
-                    subscriptionRepository.delete(subscription);
+                    if (status == 404 || status == 410) {
+                        subscriptionRepository.delete(subscription);
+                    }
+                } catch (Exception exception) {
+                    // Uma assinatura inválida não deve derrubar a operação principal da tarefa.
                 }
-            } catch (Exception exception) {
-                // Uma assinatura inválida não deve derrubar a operação principal da tarefa.
             }
+        } catch (Exception exception) {
+            // Push indisponível não deve derrubar a operação principal da tarefa.
         }
     }
 
