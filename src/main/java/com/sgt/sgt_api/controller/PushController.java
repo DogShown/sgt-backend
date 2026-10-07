@@ -3,6 +3,7 @@ package com.sgt.sgt_api.controller;
 import com.sgt.sgt_api.dto.request.PushSubscriptionRequestDTO;
 import com.sgt.sgt_api.service.PushNotificationService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,11 @@ public class PushController {
 
     @GetMapping("/public-key")
     public ResponseEntity<String> publicKey() {
-        return ResponseEntity.ok(pushNotificationService.getPublicKey());
+        try {
+            return ResponseEntity.ok(pushNotificationService.getPublicKey());
+        } catch (IllegalStateException exception) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(exception.getMessage());
+        }
     }
 
     @PostMapping("/subscriptions")
