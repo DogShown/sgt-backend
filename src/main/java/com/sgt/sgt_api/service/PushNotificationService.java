@@ -6,6 +6,9 @@ import com.sgt.sgt_api.config.PushConfig.PushSettings;
 import com.sgt.sgt_api.dto.request.PushSubscriptionRequestDTO;
 import com.sgt.sgt_api.entity.PushSubscription;
 import com.sgt.sgt_api.entity.Usuario;
+import com.sgt.sgt_api.entity.Tarefa;
+import com.sgt.sgt_api.enums.StatusTarefa;
+import com.sgt.sgt_api.repository.TarefaRepository;
 import com.sgt.sgt_api.repository.PushSubscriptionRepository;
 import com.sgt.sgt_api.repository.UsuarioRepository;
 import nl.martijndwars.webpush.Notification;
@@ -14,6 +17,7 @@ import org.apache.http.HttpResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -22,17 +26,20 @@ public class PushNotificationService {
 
     private final PushSubscriptionRepository subscriptionRepository;
     private final UsuarioRepository usuarioRepository;
+    private final TarefaRepository tarefaRepository;
     private final PushSettings settings;
     private final ObjectMapper objectMapper;
 
     public PushNotificationService(
             PushSubscriptionRepository subscriptionRepository,
             UsuarioRepository usuarioRepository,
+            TarefaRepository tarefaRepository,
             PushSettings settings,
             ObjectMapper objectMapper
     ) {
         this.subscriptionRepository = subscriptionRepository;
         this.usuarioRepository = usuarioRepository;
+        this.tarefaRepository = tarefaRepository;
         this.settings = settings;
         this.objectMapper = objectMapper;
     }
@@ -59,13 +66,14 @@ public class PushNotificationService {
         subscriptionRepository.save(subscription);
     }
 
-    public void enviarParaUsuario(String email, String titulo, String corpo, String url) {
-        if (!settings.configured()) return;
+    public boolean enviarParaUsuario(String email, String titulo, String corpo, String url) {
+        if (!settings.configured()) return false;
 
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuário autenticado não encontrado."));
 
         List<PushSubscription> subscriptions = subscriptionRepository.findByUsuarioId(usuario.getId());
+        if (subscriptions.isEmpty()) return false;
 
         String payload;
         try {
@@ -73,6 +81,8 @@ public class PushNotificationService {
         } catch (JsonProcessingException exception) {
             throw new RuntimeException("Não foi possível montar a notificação push.", exception);
         }
+
+        boolean enviou = false;
 
         try {
             PushService pushService = new PushService(
@@ -95,6 +105,8 @@ public class PushNotificationService {
 
                     if (status == 404 || status == 410) {
                         subscriptionRepository.delete(subscription);
+                    } else if (status >= 200 && status < 300) {
+                        enviou = true;
                     }
                 } catch (Exception exception) {
                     // Uma assinatura inválida não deve derrubar a operação principal da tarefa.
@@ -102,6 +114,49 @@ public class PushNotificationService {
             }
         } catch (Exception exception) {
             // Push indisponível não deve derrubar a operação principal da tarefa.
+        }
+
+        return enviou;
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 */15 * * * *")
+    public void processarLembretesAutomaticos() {
+        if (!settings.configured()) return;
+
+        LocalDate hoje = LocalDate.now();
+        LocalDate limite = hoje.plusDays(1);
+        List<Tarefa> tarefas = tarefaRepository.findByStatusInAndDataEntregaLessThanEqual(
+                List.of(StatusTarefa.PENDENTE, StatusTarefa.ATRASADA),
+                limite
+        );
+
+        for (Tarefa tarefa : tarefas) {
+            if (tarefa.getStatus() == StatusTarefa.PENDENTE && tarefa.getDataEntrega().isBefore(hoje)) {
+                tarefa.setStatus(StatusTarefa.ATRASADA);
+            }
+
+            if (tarefa.getStatus() == StatusTarefa.ATRASADA && !tarefa.isLembreteAtrasoEnviado()) {
+                boolean enviado = enviarParaUsuario(
+                        tarefa.getUsuario().getEmail(),
+                        "Tarefa atrasada",
+                        tarefa.getTitulo(),
+                        "/tarefas"
+                );
+                if (enviado) tarefa.setLembreteAtrasoEnviado(true);
+            } else if (tarefa.getStatus() == StatusTarefa.PENDENTE
+                    && !tarefa.isLembretePrazoEnviado()
+                    && !tarefa.getDataEntrega().isAfter(limite)) {
+                boolean enviado = enviarParaUsuario(
+                        tarefa.getUsuario().getEmail(),
+                        "Entrega em 24 horas",
+                        tarefa.getTitulo(),
+                        "/notificacoes"
+                );
+                if (enviado) tarefa.setLembretePrazoEnviado(true);
+            }
+
+            tarefaRepository.save(tarefa);
         }
     }
 
