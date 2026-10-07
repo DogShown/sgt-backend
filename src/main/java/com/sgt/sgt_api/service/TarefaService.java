@@ -19,10 +19,16 @@ public class TarefaService {
 
     private final TarefaRepository tarefaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PushNotificationService pushNotificationService;
 
-    public TarefaService(TarefaRepository tarefaRepository, UsuarioRepository usuarioRepository) {
+    public TarefaService(
+            TarefaRepository tarefaRepository,
+            UsuarioRepository usuarioRepository,
+            PushNotificationService pushNotificationService
+    ) {
         this.tarefaRepository = tarefaRepository;
         this.usuarioRepository = usuarioRepository;
+        this.pushNotificationService = pushNotificationService;
     }
 
     public TarefaResponseDTO criar(TarefaRequestDTO dto, String emailUsuario) {
@@ -38,6 +44,12 @@ public class TarefaService {
         tarefa.setStatus(StatusTarefa.PENDENTE);
 
         tarefa = tarefaRepository.save(tarefa);
+        pushNotificationService.enviarParaUsuario(
+                emailUsuario,
+                "Nova tarefa criada",
+                tarefa.getTitulo(),
+                "/tarefas"
+        );
         return new TarefaResponseDTO(tarefa);
     }
 
@@ -65,6 +77,12 @@ public class TarefaService {
         }
 
         tarefa = tarefaRepository.save(tarefa);
+        pushNotificationService.enviarParaUsuario(
+                emailUsuario,
+                "Tarefa concluída",
+                tarefa.getTitulo(),
+                "/tarefas"
+        );
         return new TarefaResponseDTO(tarefa);
     }
 
