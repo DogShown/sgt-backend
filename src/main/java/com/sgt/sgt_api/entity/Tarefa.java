@@ -31,11 +31,22 @@ public class Tarefa {
     @Column(nullable = false)
     private StatusTarefa status = StatusTarefa.PENDENTE;
 
+    @Column(nullable = false)
+    private boolean lembretePrazoEnviado = false;
+
+    @Column(nullable = false)
+    private boolean lembreteAtrasoEnviado = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
     public Tarefa() {}
+
+    public boolean isLembretePrazoEnviado() { return lembretePrazoEnviado; }
+    public void setLembretePrazoEnviado(boolean lembretePrazoEnviado) { this.lembretePrazoEnviado = lembretePrazoEnviado; }
+    public boolean isLembreteAtrasoEnviado() { return lembreteAtrasoEnviado; }
+    public void setLembreteAtrasoEnviado(boolean lembreteAtrasoEnviado) { this.lembreteAtrasoEnviado = lembreteAtrasoEnviado; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
