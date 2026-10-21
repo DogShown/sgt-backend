@@ -3,11 +3,11 @@ O script NAO apaga dados existentes. */
 
 IF DB_ID(N'sgt_db') IS NULL
 BEGIN
-    CREATE DATABASE sgt_db;
+    CREATE DATABASE sgt_db_sql;
 END
 GO
 
-USE sgt_db;
+USE sgt_db_sql;
 GO
 
 IF OBJECT_ID(N'dbo.tb_usuario', N'U') IS NULL
