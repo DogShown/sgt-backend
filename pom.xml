@@ -61,17 +61,17 @@
 			<artifactId>web-push</artifactId>
 			<version>5.1.2</version>
 		</dependency>
-		<!-- Required by PushNotificationService's org.apache.http.HttpResponse import. -->
+		<!-- Apache HttpClient 4 is used by PushNotificationService. -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.14</version>
 		</dependency>
-		<!-- Required by PushNotificationService's org.apache.http.HttpResponse import. -->
+		<!-- jose4j is referenced by the web-push API at compile time. -->
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.5.14</version>
+			<groupId>org.bitbucket.b_c</groupId>
+			<artifactId>jose4j</artifactId>
+			<version>0.9.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
