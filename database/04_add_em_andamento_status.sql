@@ -1,10 +1,17 @@
-/* SGT - adiciona EM_ANDAMENTO sem apagar tarefas existentes.
-   Executar uma única vez no banco sgt_db_sql.
-   A migração localiza a restrição CHECK pelo conteúdo, mesmo que o nome
-   criado anteriormente no Somee seja diferente. */
+/* SGT - permite o status EM_ANDAMENTO sem apagar tarefas.
+   Banco esperado: sgt_db_sql.
+   Execute somente depois de confirmar o banco e fazer backup.
+   Pode ser executado novamente: recria a restrição com o conjunto oficial. */
+
+IF DB_ID(N'sgt_db_sql') IS NULL
+    THROW 50010, 'Banco sgt_db_sql nao encontrado.', 1;
+GO
+
+USE sgt_db_sql;
+GO
 
 IF OBJECT_ID(N'dbo.tb_tarefa', N'U') IS NULL
-    THROW 50001, 'A tabela dbo.tb_tarefa não existe neste banco.', 1;
+    THROW 50011, 'A tabela dbo.tb_tarefa nao existe neste banco.', 1;
 GO
 
 DECLARE @constraintName sysname;
@@ -42,5 +49,5 @@ ADD CONSTRAINT CK_tb_tarefa_status CHECK (
 );
 GO
 
-PRINT N'Migração concluída: EM_ANDAMENTO agora é um status permitido.';
+PRINT N'Migracao concluida: EM_ANDAMENTO permitido.';
 GO
