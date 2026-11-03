@@ -1,9 +1,11 @@
-/* SGT - schema oficial das tabelas usadas pelo Backend atual - SQL Server.
-O script NAO apaga dados existentes. */
+/* SGT - schema oficial das tabelas usadas pelo Backend - SQL Server / Somee.
+   Banco esperado: sgt_db_sql.
+   Este script NAO cria outro banco e NAO apaga dados existentes.
+   Faça backup antes de executar em produção. */
 
-IF DB_ID(N'sgt_db') IS NULL
+IF DB_ID(N'sgt_db_sql') IS NULL
 BEGIN
-    CREATE DATABASE sgt_db_sql;
+    THROW 50000, 'O banco sgt_db_sql nao existe ou nao esta acessivel nesta conexao. Selecione o banco correto no painel Somee.', 1;
 END
 GO
 
@@ -74,16 +76,15 @@ IF NOT EXISTS (
     SELECT 1 FROM sys.indexes
     WHERE name = N'IX_tb_tarefa_usuario_id' AND object_id = OBJECT_ID(N'dbo.tb_tarefa')
 )
-BEGIN
     CREATE INDEX IX_tb_tarefa_usuario_id ON dbo.tb_tarefa(usuario_id);
-END
 GO
 
 IF NOT EXISTS (
     SELECT 1 FROM sys.indexes
     WHERE name = N'IX_tb_tarefa_status_data' AND object_id = OBJECT_ID(N'dbo.tb_tarefa')
 )
-BEGIN
     CREATE INDEX IX_tb_tarefa_status_data ON dbo.tb_tarefa(status, data_entrega);
-END
+GO
+
+PRINT N'Schema SGT verificado/criado no banco sgt_db_sql.';
 GO
