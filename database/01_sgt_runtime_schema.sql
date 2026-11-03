@@ -47,7 +47,7 @@ BEGIN
         CONSTRAINT PK_tb_tarefa PRIMARY KEY (id),
         CONSTRAINT FK_tb_tarefa_usuario FOREIGN KEY (usuario_id) REFERENCES dbo.tb_usuario(id),
         CONSTRAINT CK_tb_tarefa_status CHECK (
-            status IN (N'PENDENTE', N'CONCLUIDA_NO_PRAZO', N'CONCLUIDA_COM_ATRASO', N'ATRASADA')
+            status IN (N'PENDENTE', N'EM_ANDAMENTO', N'CONCLUIDA_NO_PRAZO', N'CONCLUIDA_COM_ATRASO', N'ATRASADA')
         ),
         CONSTRAINT CK_tb_tarefa_prioridade CHECK (prioridade IN (N'BAIXA', N'MEDIA', N'ALTA'))
     );
