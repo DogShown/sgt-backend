@@ -40,7 +40,7 @@ public class AuthService {
             throw new RuntimeException("E-mail ou senha inválidos.");
         }
 
-        String token = jwtService.gerarToken(usuario.getId(), usuario.getEmail());
+        String token = jwtService.gerarToken(usuario.getId(), usuario.getEmail(), Boolean.TRUE.equals(dto.lembrarDeMim()));
 
         return new LoginResponseDTO(
                 token,
