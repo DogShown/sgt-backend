@@ -10,7 +10,9 @@ public record LoginRequestDTO(
         String email,
 
         @NotBlank(message = "A senha é obrigatória.")
-        String senha
+        String senha,
+
+        Boolean lembrarDeMim
 ) {
     public String getEmail() {
         return  email;
