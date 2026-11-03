@@ -3,6 +3,7 @@ package com.sgt.sgt_api.controller;
 import com.sgt.sgt_api.dto.request.TarefaRequestDTO;
 import com.sgt.sgt_api.dto.response.TarefaResponseDTO;
 import com.sgt.sgt_api.service.TarefaService;
+import com.sgt.sgt_api.enums.StatusTarefa;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,6 +32,15 @@ public class TarefaController {
     @GetMapping
     public ResponseEntity<List<TarefaResponseDTO>> listar(Authentication authentication) {
         return ResponseEntity.ok(tarefaService.listarPorUsuario(authentication.getName()));
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<TarefaResponseDTO> atualizarStatus(
+            @PathVariable Long id,
+            @RequestParam StatusTarefa status,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(tarefaService.atualizarStatus(id, authentication.getName(), status));
     }
 
     @PutMapping("/{id}/concluir")
