@@ -29,13 +29,18 @@ public class JwtService {
     }
 
     public String gerarToken(Long usuarioId, String email) {
+        return gerarToken(usuarioId, email, false);
+    }
+
+    public String gerarToken(Long usuarioId, String email, boolean lembrarDeMim) {
         Instant agora = Instant.now();
+        long horasDeValidade = lembrarDeMim ? Math.max(expirationHours, 24L * 30) : expirationHours;
 
         return JWT.create()
                 .withSubject(email)
                 .withClaim("usuarioId", usuarioId)
                 .withIssuedAt(Date.from(agora))
-                .withExpiresAt(Date.from(agora.plus(expirationHours, ChronoUnit.HOURS)))
+                .withExpiresAt(Date.from(agora.plus(horasDeValidade, ChronoUnit.HOURS)))
                 .sign(algorithm);
     }
 
