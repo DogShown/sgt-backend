@@ -29,7 +29,7 @@ public class AuthService {
     }
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
-        Usuario usuario = usuarioRepository.findByEmail(dto.getEmail())
+        Usuario usuario = usuarioRepository.findByEmail(dto.getEmail().trim().toLowerCase())
                 .orElseThrow(() -> new RuntimeException("E-mail ou senha inválidos."));
 
         if (usuario.getStatus() != StatusUsuario.ATIVO) {
@@ -62,21 +62,22 @@ public class AuthService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuário autenticado não encontrado."));
 
-        usuario.setNome(dto.getNome());
-        usuario.setTurma(dto.getTurma());
+        usuario.setNome(dto.getNome().trim());
+        usuario.setTurma(dto.getTurma().trim());
         return new UsuarioResponseDTO(usuarioRepository.save(usuario));
     }
 
     public void cadastrar(RegistroRequestDTO dto) {
-        if (usuarioRepository.existsByEmail(dto.getEmail())) {
+        String emailNormalizado = dto.getEmail().trim().toLowerCase();
+        if (usuarioRepository.existsByEmail(emailNormalizado)) {
             throw new RuntimeException("E-mail já cadastrado no sistema!");
         }
 
         Usuario usuario = new Usuario();
-        usuario.setNome(dto.getNome());
-        usuario.setEmail(dto.getEmail());
+        usuario.setNome(dto.getNome().trim());
+        usuario.setEmail(emailNormalizado);
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
-        usuario.setTurma(dto.getTurma());
+        usuario.setTurma(dto.getTurma().trim());
 
         usuarioRepository.save(usuario);
     }
