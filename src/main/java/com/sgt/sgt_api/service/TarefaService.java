@@ -67,6 +67,21 @@ public class TarefaService {
         return tarefas.stream().map(TarefaResponseDTO::new).toList();
     }
 
+    public TarefaResponseDTO atualizarStatus(Long id, String emailUsuario, StatusTarefa novoStatus) {
+        if (novoStatus != StatusTarefa.PENDENTE && novoStatus != StatusTarefa.EM_ANDAMENTO) {
+            throw new IllegalArgumentException("Status inválido para esta operação.");
+        }
+
+        Tarefa tarefa = buscarTarefaDoUsuario(id, emailUsuario);
+        if (tarefa.getStatus() == StatusTarefa.CONCLUIDA_NO_PRAZO
+                || tarefa.getStatus() == StatusTarefa.CONCLUIDA_COM_ATRASO) {
+            throw new IllegalStateException("Uma tarefa concluída não pode voltar para andamento.");
+        }
+
+        tarefa.setStatus(novoStatus);
+        return new TarefaResponseDTO(tarefaRepository.save(tarefa));
+    }
+
     public TarefaResponseDTO concluirTarefa(Long id, String emailUsuario) {
         Tarefa tarefa = buscarTarefaDoUsuario(id, emailUsuario);
 
