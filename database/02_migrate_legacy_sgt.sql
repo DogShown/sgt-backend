@@ -1,11 +1,16 @@
-/* Migração opcional do modelo SQL original para as tabelas usadas pelo Backend.
-Execute depois de 01_sgt_runtime_schema.sql.
-O script só copia dados quando a tabela destino está vazia.
-Ele NAO exclui tabelas antigas. */
+/* Migracao OPCIONAL do modelo SQL legado para as tabelas usadas pelo Backend.
+   Banco esperado: sgt_db_sql.
+   Execute somente se as tabelas legadas Usuario/Tarefa existirem no MESMO banco.
+   O script copia somente quando a tabela de destino esta vazia.
+   Nao exclui nem altera as tabelas antigas.
+   Faça backup e valide as colunas/valores do legado antes de executar. */
 
-USE sgt_db;
+IF DB_ID(N'sgt_db_sql') IS NULL
+    THROW 50020, 'Banco sgt_db_sql nao encontrado.', 1;
 GO
 
+USE sgt_db_sql;
+GO
 SET XACT_ABORT ON;
 GO
 
@@ -20,7 +25,7 @@ BEGIN
         u.nome,
         u.email,
         u.senha_hash,
-        ISNULL(t.nome_turma, N'Não definida'),
+        ISNULL(t.nome_turma, N'Nao definida'),
         CASE
             WHEN u.status_assinatura IN (N'Inativa', N'Cancelamento Agendado') THEN N'INATIVO'
             ELSE N'ATIVO'
@@ -46,6 +51,7 @@ BEGIN
         ISNULL(c.nome_categoria, N'Outras'),
         CASE t.prioridade
             WHEN N'Baixa' THEN N'BAIXA'
+            WHEN N'Media' THEN N'MEDIA'
             WHEN N'Média' THEN N'MEDIA'
             WHEN N'Alta' THEN N'ALTA'
             ELSE N'MEDIA'
@@ -53,6 +59,9 @@ BEGIN
         CAST(t.data_entrega AS DATE),
         CASE t.status
             WHEN N'Pendente' THEN N'PENDENTE'
+            WHEN N'Em andamento' THEN N'EM_ANDAMENTO'
+            WHEN N'Concluida' THEN N'CONCLUIDA_NO_PRAZO'
+            WHEN N'Concluída' THEN N'CONCLUIDA_NO_PRAZO'
             WHEN N'Concluída no prazo' THEN N'CONCLUIDA_NO_PRAZO'
             WHEN N'Concluída com atraso' THEN N'CONCLUIDA_COM_ATRASO'
             WHEN N'Atrasada' THEN N'ATRASADA'
@@ -65,7 +74,7 @@ BEGIN
     INNER JOIN dbo.Usuario usuario_legado
         ON usuario_legado.id_usuario = t.id_usuario
     INNER JOIN dbo.tb_usuario novo_usuario
-        ON novo_usuario.email = usuario_legado.email
+        ON LOWER(LTRIM(RTRIM(novo_usuario.email))) = LOWER(LTRIM(RTRIM(usuario_legado.email)))
     LEFT JOIN dbo.CategoriaTarefa c
         ON c.id_categoria = t.id_categoria;
 END
