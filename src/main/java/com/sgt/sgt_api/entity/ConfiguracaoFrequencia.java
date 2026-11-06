@@ -19,8 +19,8 @@ public class ConfiguracaoFrequencia {
     private String unidade = "dias";
     @Column(name = "disciplinas_ativas", nullable = false)
     private boolean disciplinasAtivas;
-    @Column(name = "disciplinas_json", nullable = false, columnDefinition = "NVARCHAR(MAX)")
-    private String disciplinasJson = "[]";
+    @Column(name = "disciplinas_serializadas", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    private String disciplinasSerializadas = "[]";
     public Long getId(){return id;}
     public Usuario getUsuario(){return usuario;} public void setUsuario(Usuario v){usuario=v;}
     public BigDecimal getLimite(){return limite;} public void setLimite(BigDecimal v){limite=v;}
