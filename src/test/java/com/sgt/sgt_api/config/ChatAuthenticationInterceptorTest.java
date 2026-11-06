@@ -2,6 +2,7 @@ package com.sgt.sgt_api.config;
 
 import com.sgt.sgt_api.entity.Usuario;
 import com.sgt.sgt_api.repository.UsuarioRepository;
+import com.sgt.sgt_api.service.JwtService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
