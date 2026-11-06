@@ -20,12 +20,12 @@ public class ConfiguracaoFrequencia {
     @Column(name = "disciplinas_ativas", nullable = false)
     private boolean disciplinasAtivas;
     @Column(name = "disciplinas_serializadas", nullable = false, columnDefinition = "NVARCHAR(MAX)")
-    private String disciplinasSerializadas = "[]";
+    private String disciplinasSerializadas = "";
     public Long getId(){return id;}
     public Usuario getUsuario(){return usuario;} public void setUsuario(Usuario v){usuario=v;}
     public BigDecimal getLimite(){return limite;} public void setLimite(BigDecimal v){limite=v;}
     public Integer getTotalPrevisto(){return totalPrevisto;} public void setTotalPrevisto(Integer v){totalPrevisto=v;}
     public String getUnidade(){return unidade;} public void setUnidade(String v){unidade=v;}
     public boolean isDisciplinasAtivas(){return disciplinasAtivas;} public void setDisciplinasAtivas(boolean v){disciplinasAtivas=v;}
-    public String getDisciplinasJson(){return disciplinasJson;} public void setDisciplinasJson(String v){disciplinasJson=v;}
+    public String getDisciplinasSerializadas(){return disciplinasSerializadas;} public void setDisciplinasSerializadas(String v){disciplinasSerializadas=v;}
 }
