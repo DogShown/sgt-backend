@@ -47,7 +47,10 @@ public class AuthService {
                 usuario.getId(),
                 usuario.getNome(),
                 usuario.getEmail(),
-                usuario.getTurma()
+                usuario.getTurma(),
+                usuario.getAvatarUrl(),
+                usuario.getCorCapa(),
+                usuario.getImagemCapa()
         );
     }
 
@@ -64,6 +67,9 @@ public class AuthService {
 
         usuario.setNome(dto.getNome().trim());
         usuario.setTurma(dto.getTurma().trim());
+        usuario.setAvatarUrl(dto.getAvatarUrl());
+        usuario.setCorCapa(dto.getCorCapa() == null ? "#075b70" : dto.getCorCapa());
+        usuario.setImagemCapa(dto.getImagemCapa());
         return new UsuarioResponseDTO(usuarioRepository.save(usuario));
     }
 
