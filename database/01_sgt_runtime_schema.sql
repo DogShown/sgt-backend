@@ -24,6 +24,9 @@ BEGIN
         data_criacao DATETIME2 NOT NULL CONSTRAINT DF_tb_usuario_data_criacao DEFAULT SYSDATETIME(),
         rm VARCHAR(20) NULL,
         foto_perfil NVARCHAR(255) NULL,
+        avatar_url NVARCHAR(MAX) NULL,
+        cor_capa NVARCHAR(7) NULL CONSTRAINT DF_tb_usuario_cor_capa DEFAULT N'#075b70',
+        imagem_capa NVARCHAR(MAX) NULL,
         CONSTRAINT PK_tb_usuario PRIMARY KEY (id),
         CONSTRAINT UQ_tb_usuario_email UNIQUE (email),
         CONSTRAINT CK_tb_usuario_status CHECK (status IN (N'ATIVO', N'INATIVO', N'BLOQUEADO'))
