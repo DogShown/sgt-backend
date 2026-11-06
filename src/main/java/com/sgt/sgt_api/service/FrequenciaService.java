@@ -1,10 +1,15 @@
 package com.sgt.sgt_api.service;
 
 import com.sgt.sgt_api.dto.request.RegistroFrequenciaRequestDTO;
+import com.sgt.sgt_api.dto.request.ConfiguracaoFrequenciaRequestDTO;
 import com.sgt.sgt_api.dto.response.RegistroFrequenciaResponseDTO;
+import com.sgt.sgt_api.dto.response.ConfiguracaoFrequenciaResponseDTO;
 import com.sgt.sgt_api.entity.*;
 import com.sgt.sgt_api.repository.*;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.LinkedHashSet;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
@@ -13,7 +18,9 @@ import java.util.List;
 public class FrequenciaService {
     private final RegistroFrequenciaRepository registros;
     private final UsuarioRepository usuarios;
-    public FrequenciaService(RegistroFrequenciaRepository registros, UsuarioRepository usuarios){this.registros=registros;this.usuarios=usuarios;}
+    private final ConfiguracaoFrequenciaRepository configuracoes;
+    private final ObjectMapper objectMapper;
+    public FrequenciaService(RegistroFrequenciaRepository registros, UsuarioRepository usuarios, ConfiguracaoFrequenciaRepository configuracoes, ObjectMapper objectMapper){this.registros=registros;this.usuarios=usuarios;this.configuracoes=configuracoes;this.objectMapper=objectMapper;}
     public List<RegistroFrequenciaResponseDTO> listar(String email){
         Usuario u=usuario(email);
         return registros.findByUsuarioIdOrderByDataDesc(u.getId()).stream().map(RegistroFrequenciaResponseDTO::new).toList();
@@ -27,6 +34,28 @@ public class FrequenciaService {
         RegistroFrequencia r=registros.findById(id).orElseThrow(()->new IllegalArgumentException("Registro não encontrado."));
         if(!r.getUsuario().getEmail().equalsIgnoreCase(email)) throw new IllegalArgumentException("Sem permissão para excluir este registro.");
         registros.delete(r);
+    }
+
+    public ConfiguracaoFrequenciaResponseDTO obterConfiguracao(String email) {
+        Usuario u=usuario(email);
+        return configuracoes.findByUsuarioId(u.getId()).map(this::mapearConfiguracao).orElse(null);
+    }
+    public ConfiguracaoFrequenciaResponseDTO salvarConfiguracao(ConfiguracaoFrequenciaRequestDTO dto,String email) {
+        Usuario u=usuario(email);
+        ConfiguracaoFrequencia c=configuracoes.findByUsuarioId(u.getId()).orElseGet(ConfiguracaoFrequencia::new);
+        c.setUsuario(u); c.setLimite(dto.limite()); c.setTotalPrevisto(dto.totalPrevisto());
+        c.setUnidade(dto.unidade()); c.setDisciplinasAtivas(dto.disciplinasAtivas());
+        List<String> materias=(dto.disciplinas()==null?List.<String>of():dto.disciplinas()).stream()
+            .map(String::trim).filter(v->!v.isBlank()).distinct().toList();
+        try { c.setDisciplinasJson(objectMapper.writeValueAsString(materias)); }
+        catch(Exception e){throw new IllegalStateException("Não foi possível salvar as matérias da frequência.",e);}
+        return mapearConfiguracao(configuracoes.save(c));
+    }
+    private ConfiguracaoFrequenciaResponseDTO mapearConfiguracao(ConfiguracaoFrequencia c) {
+        try {
+            List<String> materias=objectMapper.readValue(c.getDisciplinasJson(),new TypeReference<List<String>>(){});
+            return new ConfiguracaoFrequenciaResponseDTO(c,materias);
+        } catch(Exception e){throw new IllegalStateException("Não foi possível ler as matérias da frequência.",e);}
     }
     private Usuario usuario(String email){return usuarios.findByEmail(email).orElseThrow(()->new IllegalArgumentException("Usuário não encontrado."));}
 }
