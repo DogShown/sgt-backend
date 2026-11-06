@@ -21,6 +21,7 @@ public class TarefaService {
         this.tarefaRepository=tarefaRepository; this.usuarioRepository=usuarioRepository; this.pushNotificationService=pushNotificationService;
     }
     public TarefaResponseDTO criar(TarefaRequestDTO dto,String emailUsuario) {
+        if(dto.dataEntrega().isBefore(LocalDate.now())) throw new IllegalArgumentException("A data de entrega deve ser atual ou futura ao criar uma tarefa.");
         Usuario usuario=buscarUsuarioAutenticado(emailUsuario);
         Tarefa tarefa=new Tarefa(); aplicarDados(tarefa,dto); tarefa.setUsuario(usuario); tarefa.setStatus(StatusTarefa.PENDENTE);
         tarefa=tarefaRepository.save(tarefa);
