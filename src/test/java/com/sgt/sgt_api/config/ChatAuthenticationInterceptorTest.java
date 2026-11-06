@@ -45,6 +45,21 @@ class ChatAuthenticationInterceptorTest {
         assertThrows(MessageDeliveryException.class,()->interceptor.preSend(message,null));
     }
 
+    @Test void permiteDuasContasDaMesmaTurmaNoMesmoCanal() {
+        when(usuarios.findByEmail("aluna1@sgt.test")).thenReturn(Optional.of(usuario("aluna1@sgt.test","INF3GM")));
+        when(usuarios.findByEmail("aluno2@sgt.test")).thenReturn(Optional.of(usuario("aluno2@sgt.test","INF3GM")));
+        Message<byte[]> primeira=mensagem(StompCommand.SUBSCRIBE,"/topic/turma/INF3GM",()->"aluna1@sgt.test");
+        Message<byte[]> segunda=mensagem(StompCommand.SUBSCRIBE,"/topic/turma/INF3GM",()->"aluno2@sgt.test");
+        assertDoesNotThrow(()->interceptor.preSend(primeira,null));
+        assertDoesNotThrow(()->interceptor.preSend(segunda,null));
+    }
+
+    @Test void impedeContaDeOutraTurmaDeEntrarNoCanal() {
+        when(usuarios.findByEmail("aluno2@sgt.test")).thenReturn(Optional.of(usuario("aluno2@sgt.test","INF3EM")));
+        Message<byte[]> message=mensagem(StompCommand.SUBSCRIBE,"/topic/turma/INF3GM",()->"aluno2@sgt.test");
+        assertThrows(MessageDeliveryException.class,()->interceptor.preSend(message,null));
+    }
+
     @Test void bloqueiaEnvioSemSessaoAutenticada() {
         Message<byte[]> message=mensagem(StompCommand.SEND,"/app/chat.enviar/INF3GM",null);
         assertThrows(MessageDeliveryException.class,()->interceptor.preSend(message,null));
