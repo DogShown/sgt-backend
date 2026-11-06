@@ -7,8 +7,10 @@ import com.sgt.sgt_api.dto.response.ConfiguracaoFrequenciaResponseDTO;
 import com.sgt.sgt_api.entity.*;
 import com.sgt.sgt_api.repository.*;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import java.util.LinkedHashSet;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -19,8 +21,7 @@ public class FrequenciaService {
     private final RegistroFrequenciaRepository registros;
     private final UsuarioRepository usuarios;
     private final ConfiguracaoFrequenciaRepository configuracoes;
-    private final ObjectMapper objectMapper;
-    public FrequenciaService(RegistroFrequenciaRepository registros, UsuarioRepository usuarios, ConfiguracaoFrequenciaRepository configuracoes, ObjectMapper objectMapper){this.registros=registros;this.usuarios=usuarios;this.configuracoes=configuracoes;this.objectMapper=objectMapper;}
+    public FrequenciaService(RegistroFrequenciaRepository registros, UsuarioRepository usuarios, ConfiguracaoFrequenciaRepository configuracoes){this.registros=registros;this.usuarios=usuarios;this.configuracoes=configuracoes;}
     public List<RegistroFrequenciaResponseDTO> listar(String email){
         Usuario u=usuario(email);
         return registros.findByUsuarioIdOrderByDataDesc(u.getId()).stream().map(RegistroFrequenciaResponseDTO::new).toList();
@@ -47,13 +48,13 @@ public class FrequenciaService {
         c.setUnidade(dto.unidade()); c.setDisciplinasAtivas(dto.disciplinasAtivas());
         List<String> materias=(dto.disciplinas()==null?List.<String>of():dto.disciplinas()).stream()
             .map(String::trim).filter(v->!v.isBlank()).distinct().toList();
-        try { c.setDisciplinasJson(objectMapper.writeValueAsString(materias)); }
-        catch(Exception e){throw new IllegalStateException("Não foi possível salvar as matérias da frequência.",e);}
+        c.setDisciplinasSerializadas(materias.stream().map(v->Base64.getUrlEncoder().withoutPadding().encodeToString(v.getBytes(StandardCharsets.UTF_8))).collect(Collectors.joining(".")));
         return mapearConfiguracao(configuracoes.save(c));
     }
     private ConfiguracaoFrequenciaResponseDTO mapearConfiguracao(ConfiguracaoFrequencia c) {
         try {
-            List<String> materias=objectMapper.readValue(c.getDisciplinasJson(),new TypeReference<List<String>>(){});
+            String serializado=c.getDisciplinasSerializadas();
+            List<String> materias=serializado==null || serializado.isBlank()?List.of():Arrays.stream(serializado.split("\\.")).map(v->new String(Base64.getUrlDecoder().decode(v),StandardCharsets.UTF_8)).toList();
             return new ConfiguracaoFrequenciaResponseDTO(c,materias);
         } catch(Exception e){throw new IllegalStateException("Não foi possível ler as matérias da frequência.",e);}
     }
