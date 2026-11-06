@@ -5,5 +5,8 @@ public record LoginResponseDTO(
         Long id,
         String nome,
         String email,
-        String turma
+        String turma,
+        String avatarUrl,
+        String corCapa,
+        String imagemCapa
 ) {}
