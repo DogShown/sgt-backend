@@ -31,3 +31,18 @@ BEGIN
     );
     CREATE INDEX IX_token_conta_usuario_finalidade ON dbo.tb_token_conta(usuario_id, finalidade);
 END;
+
+IF OBJECT_ID('dbo.tb_configuracao_frequencia', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tb_configuracao_frequencia (
+        id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        usuario_id BIGINT NOT NULL,
+        limite DECIMAL(5,2) NOT NULL CONSTRAINT DF_config_freq_limite DEFAULT 25.00,
+        total_previsto INT NOT NULL CONSTRAINT DF_config_freq_total DEFAULT 200,
+        unidade NVARCHAR(10) NOT NULL CONSTRAINT DF_config_freq_unidade DEFAULT 'dias',
+        disciplinas_ativas BIT NOT NULL CONSTRAINT DF_config_freq_ativas DEFAULT 0,
+        disciplinas_json NVARCHAR(MAX) NOT NULL CONSTRAINT DF_config_freq_json DEFAULT '[]',
+        CONSTRAINT UQ_config_frequencia_usuario UNIQUE(usuario_id),
+        CONSTRAINT FK_config_frequencia_usuario FOREIGN KEY (usuario_id) REFERENCES dbo.tb_usuario(id)
+    );
+END;
