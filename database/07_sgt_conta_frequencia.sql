@@ -41,7 +41,7 @@ BEGIN
         total_previsto INT NOT NULL CONSTRAINT DF_config_freq_total DEFAULT 200,
         unidade NVARCHAR(10) NOT NULL CONSTRAINT DF_config_freq_unidade DEFAULT 'dias',
         disciplinas_ativas BIT NOT NULL CONSTRAINT DF_config_freq_ativas DEFAULT 0,
-        disciplinas_serializadas NVARCHAR(MAX) NOT NULL CONSTRAINT DF_config_freq_json DEFAULT '[]',
+        disciplinas_serializadas NVARCHAR(MAX) NOT NULL CONSTRAINT DF_config_freq_json DEFAULT '',
         CONSTRAINT UQ_config_frequencia_usuario UNIQUE(usuario_id),
         CONSTRAINT FK_config_frequencia_usuario FOREIGN KEY (usuario_id) REFERENCES dbo.tb_usuario(id)
     );
