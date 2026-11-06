@@ -16,4 +16,4 @@ jobs:
           java-version: '21'
           cache: maven
       - name: Compile backend
-        run: bash mvnw -B -DskipTests package
+        run: bash mvnw -B verify
