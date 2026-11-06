@@ -54,8 +54,8 @@ A compilação do projeto não valida acesso real ao SQL Server nem a entrega SM
 Foi adicionado o workflow manual `.github/workflows/sqlserver-integration.yml`. Para executá-lo sem expor credenciais:
 
 1. Em GitHub → Settings → Secrets and variables → Actions, crie os secrets `SGT_DB_USERNAME` e `SGT_DB_PASSWORD`.
-2. Abra a aba Actions do repositório.
-3. Selecione **SQL Server integration smoke test** e execute **Run workflow** na branch `feature/sgt-core-completion`.
+2. Em Settings → Secrets and variables → Actions → Variables, crie `SGT_SQLSERVER_INTEGRATION` com valor `true`.
+3. Envie um commit para a branch ou abra/atualize o PR; o job `sqlserver-smoke` será habilitado.
 4. O teste executa somente `SELECT 1`; não cria, altera ou remove dados do banco.
 
 Esse teste confirma conectividade e autenticação. Ele não substitui um teste de integração CRUD completo com contas de teste.
