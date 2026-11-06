@@ -21,10 +21,10 @@ public class ContaService {
  private static final String RESET="RESET_SENHA", EMAIL="ALTERAR_EMAIL";
  private final UsuarioRepository usuarios; private final TokenContaRepository tokens; private final PasswordEncoder encoder;
  private final JavaMailSender mail; private final TarefaRepository tarefas; private final RegistroFrequenciaRepository frequencias;
- private final PushSubscriptionRepository push; private final String frontendUrl; private final String remetente;
- public ContaService(UsuarioRepository usuarios,TokenContaRepository tokens,PasswordEncoder encoder,JavaMailSender mail,TarefaRepository tarefas,RegistroFrequenciaRepository frequencias,PushSubscriptionRepository push,
+ private final PushSubscriptionRepository push; private final ConfiguracaoFrequenciaRepository configuracoes; private final String frontendUrl; private final String remetente;
+ public ContaService(UsuarioRepository usuarios,TokenContaRepository tokens,PasswordEncoder encoder,JavaMailSender mail,TarefaRepository tarefas,RegistroFrequenciaRepository frequencias,PushSubscriptionRepository push, ConfiguracaoFrequenciaRepository configuracoes,
   @Value("${sgt.frontend.url:http://localhost:5173}") String frontendUrl,@Value("${sgt.mail.from:noreply@sgt.local}") String remetente){
-  this.usuarios=usuarios;this.tokens=tokens;this.encoder=encoder;this.mail=mail;this.tarefas=tarefas;this.frequencias=frequencias;this.push=push;this.frontendUrl=frontendUrl;this.remetente=remetente;
+  this.usuarios=usuarios;this.tokens=tokens;this.encoder=encoder;this.mail=mail;this.tarefas=tarefas;this.frequencias=frequencias;this.push=push;this.configuracoes=configuracoes;this.frontendUrl=frontendUrl;this.remetente=remetente;
  }
  public void solicitarRedefinicao(String email){
   usuarios.findByEmail(email.trim().toLowerCase()).ifPresent(u->emitirToken(u,RESET,u.getEmail(),"redefinir-senha","Redefinição de senha"));
@@ -46,7 +46,7 @@ public class ContaService {
  public void excluirConta(String email,String senha){
   Usuario u=usuarios.findByEmail(email).orElseThrow(()->new IllegalArgumentException("Conta não encontrada."));
   if(!encoder.matches(senha,u.getSenha())) throw new IllegalArgumentException("Senha incorreta.");
-  Long id=u.getId();push.deleteByUsuarioId(id);tarefas.deleteByUsuarioId(id);frequencias.deleteByUsuarioId(id);tokens.deleteByUsuarioId(id);usuarios.delete(u);
+  Long id=u.getId();push.deleteByUsuarioId(id);configuracoes.deleteByUsuarioId(id);tarefas.deleteByUsuarioId(id);frequencias.deleteByUsuarioId(id);tokens.deleteByUsuarioId(id);usuarios.delete(u);
  }
  private void emitirToken(Usuario u,String finalidade,String destino,String rota,String assunto){
   tokens.deleteByUsuarioIdAndFinalidadeAndConsumidoEmIsNull(u.getId(),finalidade);
