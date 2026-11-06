@@ -21,10 +21,10 @@ public class ContaService {
  private static final String RESET="RESET_SENHA", EMAIL="ALTERAR_EMAIL";
  private final UsuarioRepository usuarios; private final TokenContaRepository tokens; private final PasswordEncoder encoder;
  private final JavaMailSender mail; private final TarefaRepository tarefas; private final RegistroFrequenciaRepository frequencias;
- private final PushSubscriptionRepository push; private final ConfiguracaoFrequenciaRepository configuracoes; private final String frontendUrl; private final String remetente;
+ private final PushSubscriptionRepository push; private final ConfiguracaoFrequenciaRepository configuracoes; private final String frontendUrl; private final String remetente; private final boolean mailEnabled;
  public ContaService(UsuarioRepository usuarios,TokenContaRepository tokens,PasswordEncoder encoder,JavaMailSender mail,TarefaRepository tarefas,RegistroFrequenciaRepository frequencias,PushSubscriptionRepository push, ConfiguracaoFrequenciaRepository configuracoes,
-  @Value("${sgt.frontend.url:http://localhost:5173}") String frontendUrl,@Value("${sgt.mail.from:noreply@sgt.local}") String remetente){
-  this.usuarios=usuarios;this.tokens=tokens;this.encoder=encoder;this.mail=mail;this.tarefas=tarefas;this.frequencias=frequencias;this.push=push;this.configuracoes=configuracoes;this.frontendUrl=frontendUrl;this.remetente=remetente;
+  @Value("${sgt.frontend.url:http://localhost:5173}") String frontendUrl,@Value("${sgt.mail.from:noreply@sgt.local}") String remetente, @Value("${sgt.mail.enabled:false}") boolean mailEnabled){
+  this.usuarios=usuarios;this.tokens=tokens;this.encoder=encoder;this.mail=mail;this.tarefas=tarefas;this.frequencias=frequencias;this.push=push;this.configuracoes=configuracoes;this.frontendUrl=frontendUrl;this.remetente=remetente;this.mailEnabled=mailEnabled;
  }
  public void solicitarRedefinicao(String email){
   usuarios.findByEmail(email.trim().toLowerCase()).ifPresent(u->emitirToken(u,RESET,u.getEmail(),"redefinir-senha","Redefinição de senha"));
@@ -49,6 +49,7 @@ public class ContaService {
   Long id=u.getId();push.deleteByUsuarioId(id);configuracoes.deleteByUsuarioId(id);tarefas.deleteByUsuarioId(id);frequencias.deleteByUsuarioId(id);tokens.deleteByUsuarioId(id);usuarios.delete(u);
  }
  private void emitirToken(Usuario u,String finalidade,String destino,String rota,String assunto){
+  if(!mailEnabled) throw new IllegalStateException("O envio de e-mails ainda não foi habilitado. Configure o SMTP do SGT.");
   tokens.deleteByUsuarioIdAndFinalidadeAndConsumidoEmIsNull(u.getId(),finalidade);
   String raw=UUID.randomUUID().toString().replace("-","")+UUID.randomUUID().toString().replace("-","");
   TokenConta t=new TokenConta();t.setUsuario(u);t.setFinalidade(finalidade);t.setTokenHash(hash(raw));t.setEmailDestino(destino);t.setExpiraEm(LocalDateTime.now().plusMinutes(30));tokens.save(t);
