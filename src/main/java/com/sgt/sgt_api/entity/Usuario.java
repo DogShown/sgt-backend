@@ -30,6 +30,16 @@ public class Usuario {
 
     private LocalDateTime dataCriacao = LocalDateTime.now();
 
+    // Imagens otimizadas em data URL para persistência no SQL Server.
+    @Column(name = "avatar_url", columnDefinition = "NVARCHAR(MAX)")
+    private String avatarUrl;
+
+    @Column(name = "cor_capa", length = 7)
+    private String corCapa = "#075b70";
+
+    @Column(name = "imagem_capa", columnDefinition = "NVARCHAR(MAX)")
+    private String imagemCapa;
+
     public Usuario() {}
 
     public Usuario(Long id, String nome, String email, String senha, String turma, StatusUsuario status) {
@@ -54,4 +64,10 @@ public class Usuario {
     public StatusUsuario getStatus() { return status; }
     public void setStatus(StatusUsuario status) { this.status = status; }
     public LocalDateTime getDataCriacao() { return dataCriacao; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public String getCorCapa() { return corCapa; }
+    public void setCorCapa(String corCapa) { this.corCapa = corCapa; }
+    public String getImagemCapa() { return imagemCapa; }
+    public void setImagemCapa(String imagemCapa) { this.imagemCapa = imagemCapa; }
 }
