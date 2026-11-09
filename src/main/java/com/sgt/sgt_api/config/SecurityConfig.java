@@ -1,6 +1,8 @@
 package com.sgt.sgt_api.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,9 +39,18 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // A API usa JWT no cabeçalho Authorization e não autenticação por cookie/sessão.
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, exception) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                        )
+                        .accessDeniedHandler((request, response, exception) ->
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN)
+                        )
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -58,6 +69,25 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    /*
+     * JwtAuthenticationFilter também é um @Component. Sem desabilitar o registro
+     * automático do Spring Boot, ele pode ser executado como filtro do Servlet
+     * E dentro da cadeia do Spring Security. Isso pode fazer o filtro marcar a
+     * requisição como já processada antes da cadeia restaurar o SecurityContext,
+     * deixando a requisição sem Authentication e causando 403 em rotas protegidas.
+     *
+     * Mantemos o filtro exclusivamente na cadeia do Spring Security acima.
+     */
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterServletRegistration(
+            JwtAuthenticationFilter filter
+    ) {
+        FilterRegistrationBean<JwtAuthenticationFilter> registration =
+                new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
